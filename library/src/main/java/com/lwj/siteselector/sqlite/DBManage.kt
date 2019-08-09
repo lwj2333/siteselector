@@ -4,7 +4,9 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.os.Environment
 import android.support.v4.util.ArrayMap
-
+import android.text.TextUtils
+import android.util.Log
+import java.io.File
 
 
 /**
@@ -12,30 +14,43 @@ import android.support.v4.util.ArrayMap
  * @date on 2018/4/25
  * @describe 添加描述
  */
-class DBManage private constructor(tableName:String?="tb_location"){
-    private var tableName = ""
+class DBManage private constructor(private var tableName: String?) {
     companion object {
         private var db: SQLiteDatabase? = null
         /*单例*/
         @Volatile
         private var INSTANCE: DBManage? = null
-
         /*获取单例*/
-        fun getInstance(context: Context,tableName:String? = null, dbPath:String?=null): DBManage? {
+        fun getInstance(
+            context: Context,
+            tableName: String? = null,
+            dbName: String? = null,
+            dbPath: String? = null
+        ): DBManage? {
             if (INSTANCE == null) {
                 synchronized(DBManage::class.java) {
                     if (INSTANCE == null) {
-                        val dBPath = if (dbPath==null){
-                        val dBName = "location.db"
-                        val packageName = context.packageName
-                        val path = Environment.getDataDirectory().absolutePath
-                            "/data$path/$packageName/databases/$dBName"
-                        }else{
+                        val dBName = if (TextUtils.isEmpty(dbName)) {
+                            "location.db"
+                        } else {
+                            dbName
+                        }
+                        val dBPath = if (dbPath == null) {
+                            val packageName = context.packageName
+                            val path = Environment.getDataDirectory().absolutePath
+                            "/data$path/$packageName/databases/"
+                        } else {
                             dbPath
                         }
+                        val tabName = if (TextUtils.isEmpty(tableName)){
+                            "tb_location"
+                        }else{
+                            tableName
+                        }
                         INSTANCE = try {
-                            db = SQLiteDatabase.openOrCreateDatabase(dBPath, null)
-                            DBManage(tableName)
+                           // db = SQLiteDatabase.openOrCreateDatabase("$dBPath$dBName", null)
+                            db = SQLiteDatabase.openOrCreateDatabase(File(dBPath,dBName), null)
+                            DBManage(tabName)
                         } catch (e: Exception) {
                             null
                         }
@@ -45,17 +60,19 @@ class DBManage private constructor(tableName:String?="tb_location"){
             return INSTANCE
         }
     }
-    var query :QueryOperation ?=null
-    fun addQuery(query :QueryOperation){
-        this.query =query
-    }
-    fun close() {
-        db?.close()
-        INSTANCE =null
+
+    var query: QueryOperation? = null
+    fun addQuery(query: QueryOperation) {
+        this.query = query
     }
 
+    fun close() {
+        db?.close()
+        INSTANCE = null
+    }
+private val TAG ="DBManage"
     fun queryLocation(locationID: Int): ArrayList<CityModel>? {
-        if (query!=null){
+        if (query != null) {
             return query!!.queryLocation(locationID)
         }
         var list: ArrayList<CityModel>? = null
@@ -100,9 +117,10 @@ class DBManage private constructor(tableName:String?="tb_location"){
     }
 
     fun queryLocation(strList: List<String?>): CityDBModel {
-        if (query!=null){
+        if (query != null) {
             return query!!.queryLocation(strList)
         }
+         Log.i(TAG,"DBManage: $tableName  ")
         val list: ArrayList<ArrayList<CityModel>> = ArrayList()
         val map: ArrayMap<Int, Int> = ArrayMap()
         val locationMap: ArrayMap<Int, String> = ArrayMap()

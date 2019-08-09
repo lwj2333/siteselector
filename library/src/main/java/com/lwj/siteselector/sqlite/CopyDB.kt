@@ -3,6 +3,8 @@ package com.lwj.siteselector.sqlite
 import android.content.Context
 import android.os.Environment
 import android.text.TextUtils
+import android.util.Log
+import com.lwj.siteselector.R
 import java.io.*
 
 class CopyDB(private var mContext: Context) {
@@ -10,30 +12,38 @@ class CopyDB(private var mContext: Context) {
 
     private val packageName = mContext.packageName
 
-    fun checkDB(dbResource: Int, dbPath: String?, cover: Boolean = false): Int {
+    fun checkDB(dbResource: Int, dbName: String?, dbPath: String?, cover: Boolean = false): Int {
 
-
+        val resource = if (dbResource == -1) {
+            R.raw.gdjj_location
+        } else {
+            dbResource
+        }
         val dBPath = if (TextUtils.isEmpty(dbPath)) {
             val path = Environment.getDataDirectory().absolutePath
-            "/data$path/$packageName/databases/location.db"
+            "/data$path/$packageName/databases/"
         } else {
             dbPath
         }
-
         if (!File(dBPath).exists()) {
             File(dBPath).mkdirs()
         }
-
-        return copyDatabase(dbResource, dBPath!!, cover)
+        val dBName: String ? = if (TextUtils.isEmpty(dbName)) {
+            "location.db"
+        } else {
+            dbName
+        }
+        return copyDatabase(resource,File(dBPath,dBName) , cover)
     }
+private val TAG ="CopyDB"
 
+    private fun copyDatabase(dbResource: Int, dbFile: File, cover: Boolean): Int {
 
-    private fun copyDatabase(dbResource: Int, dbFile: String, cover: Boolean): Int {
         var fos: FileOutputStream? = null
         var ins: InputStream? = null
         var result = 0
         try {
-            if (cover || !File(dbFile).exists()) {
+            if (cover || !dbFile.exists()) {
                 ins = mContext.resources.openRawResource(dbResource)
                 fos = FileOutputStream(dbFile)
                 val buffer = ByteArray(bufferSize)

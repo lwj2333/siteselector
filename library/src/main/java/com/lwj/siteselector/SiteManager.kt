@@ -24,13 +24,18 @@ class SiteManager private constructor(builder: Builder) {
     private var mQuery: QueryOperation? = null
     private var locationListener: OnLocationListener? = null
     private var dbPath: String? = null
+    private var dbName: String? = null
+    private var tableName: String? = null
     private var dbResource: Int = -1
+
     init {
         mContext = builder.mContext
         mDialogSetting = builder.mDialogSetting
         mQuery = builder.mQuery
         locationListener = builder.locationListener
         dbPath = builder.dbPath
+        dbName = builder.dbName
+        tableName = builder.tableName
         dbResource = builder.dbResource
         initSharedPreferences()
         initSite()
@@ -41,13 +46,14 @@ class SiteManager private constructor(builder: Builder) {
     private fun initSharedPreferences() {
         share = mContext!!.getSharedPreferences("config", Context.MODE_PRIVATE)
         editor = share?.edit()
-        copyDB = share?.getInt("CopyDB",0)?:0
+        copyDB = share?.getInt("CopyDB", 0) ?: 0
     }
 
-    private fun putInt(key:String,value:Int){
+    private fun putInt(key: String, value: Int) {
         editor?.putInt(key, value)
         editor?.commit()
     }
+
     var mHandler: Handler = Handler()
 
 
@@ -69,7 +75,7 @@ class SiteManager private constructor(builder: Builder) {
         }
     }
 
-    private fun importDB(force: Boolean = false, count: Int){
+    private fun importDB(force: Boolean = false, count: Int) {
         if (force) {
             mDialogSetting?.showDialog(0)
         }
@@ -80,10 +86,10 @@ class SiteManager private constructor(builder: Builder) {
         Thread(Runnable {
             try {
                 val value = if (force) {
-                    CopyDB(mContext!!).checkDB(dbResource, dbPath, force)
+                    CopyDB(mContext!!).checkDB(dbResource, dbName, dbPath, force)
                 } else {
                     val cover: Boolean = copyDB == 0
-                    CopyDB(mContext!!).checkDB(dbResource, dbPath, cover)
+                    CopyDB(mContext!!).checkDB(dbResource, dbName, dbPath, cover)
                 }
                 putInt("CopyDB", value)
                 mHandler.post {
@@ -171,7 +177,7 @@ class SiteManager private constructor(builder: Builder) {
             tempList.addAll(siteList)
         }
         location.addAll(siteList)
-        val manage: DBManage? = DBManage.getInstance(mContext!!)
+        val manage: DBManage? = DBManage.getInstance(mContext!!, tableName, dbName, dbPath)
         val city = manage?.queryLocation(location)
         if (city != null) {
             isSelectFinish = city.isFinish
@@ -181,10 +187,11 @@ class SiteManager private constructor(builder: Builder) {
         }
     }
 
-    private var copyDB: Int =0
+    private var copyDB: Int = 0
     var isSelectFinish = true
+    private val TAG = "SiteManager"
     fun selectLocation(siteList: List<String>?, count: Int = 1) {
-        Log.i(TAG, "SiteUtils: $ tt ")
+        Log.i(TAG, "SiteUtils: $siteList ")
         getLocation(siteList)
         if (listLocation.size > 0) {
             listIndex = listLocation.size - 1
@@ -305,7 +312,7 @@ class SiteManager private constructor(builder: Builder) {
                 listMap[i] = position
                 locationMap[i] = list[position].cName
                 list[position].isSelect = true
-                val manage: DBManage? = DBManage.getInstance(mContext!!)
+                val manage: DBManage? = DBManage.getInstance(mContext!!, tableName, dbName, dbPath)
                 val location: ArrayList<CityModel>? = manage?.queryLocation(list[position].id)
                 if (location != null) {
                     list.clear()
@@ -330,8 +337,11 @@ class SiteManager private constructor(builder: Builder) {
     private var location: ArrayList<String?> = ArrayList()
 
     private fun initLocation(locationID: Int, type: Int): ArrayList<CityModel>? {
-        val location: ArrayList<CityModel>? = DBManage.getInstance(mContext!!)?.queryLocation(locationID)
-
+        val location: ArrayList<CityModel>? = DBManage.getInstance(
+            mContext!!, tableName,
+            dbName, dbPath
+        )?.queryLocation(locationID)
+  Log.i(TAG,"SiteManager: $location  ")
         if (location != null) {
             when (type) {
                 0 -> {
@@ -356,23 +366,35 @@ class SiteManager private constructor(builder: Builder) {
      * 关闭数据库链接
      */
     fun close() {
-        DBManage.getInstance(mContext!!)?.close()
+        DBManage.getInstance(mContext!!, tableName, dbName, dbPath)?.close()
     }
 
 
-    class Builder {
+    object Builder {
         var mContext: Context? = null
         var mDialogSetting: DialogSetting? = null
         var mQuery: QueryOperation? = null
         var locationListener: OnLocationListener? = null
         var dbPath: String? = null
+        var dbName: String? = null
+        var tableName: String? = null
         var dbResource: Int = -1
         fun setContext(context: Context): Builder {
             mContext = context
             return this
         }
 
-        fun setContext(dbPath: String?): Builder {
+        fun setDBName(dbName: String?): Builder {
+            this.dbName = dbName
+            return this
+        }
+
+        fun setTableName(tableName: String?): Builder {
+            this.tableName = tableName
+            return this
+        }
+
+        fun setDBPath(dbPath: String?): Builder {
             this.dbPath = dbPath
             return this
         }

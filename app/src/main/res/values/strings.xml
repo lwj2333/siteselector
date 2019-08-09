@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Siteselector</string>
+
+    <string name="cancel_dialog">取消</string>
+    <string name="ensure_dialog">去允许</string>
+    <string name="permission_dialog_half_top">为保证您正常使用此功能，需要获取您的</string>
+    <string name="permission_dialog_half_bottom_0">使用权限，请允许。</string>
+    <string name="permission_dialog_half_bottom_1">使用权限，请问是否继续授权。</string>
+    <string name="hint_dialog">提示</string>
 </resources>

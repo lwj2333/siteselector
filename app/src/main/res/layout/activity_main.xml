@@ -6,7 +6,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".MainActivity">
-    <TextView
+    <Button
             android:text="点击选择地址"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
