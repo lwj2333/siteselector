@@ -3,6 +3,7 @@ package com.lwj.siteselector
 import android.content.Context
 import android.support.v4.content.ContextCompat
 import android.util.AttributeSet
+import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -10,7 +11,6 @@ import android.view.View
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
-
 
 
 class ScrollViewBar : FrameLayout {
@@ -29,8 +29,11 @@ class ScrollViewBar : FrameLayout {
     constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs) {
         mContext = context
         val typedArray = context!!.obtainStyledAttributes(attrs, R.styleable.ScrollViewBar)
-        textSize = typedArray.getDimensionPixelSize(R.styleable.ScrollViewBar_textSize, TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_SP, 14f, resources.displayMetrics).toInt()).toFloat()
+        textSize = typedArray.getDimensionPixelSize(
+            R.styleable.ScrollViewBar_textSize, TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_SP, 14f, resources.displayMetrics
+            ).toInt()
+        ).toFloat()
         margin = typedArray.getDimensionPixelSize(R.styleable.ScrollViewBar_marginLtR, 0)
         typedArray.recycle()
         initView()
@@ -53,8 +56,10 @@ class ScrollViewBar : FrameLayout {
 
         val index: Int = viewList.size
         val tv = TextView(mContext)
-        val params: LinearLayout.LayoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.MATCH_PARENT)
+        val params: LinearLayout.LayoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.MATCH_PARENT
+        )
         params.marginStart = margin
         params.marginEnd = margin
         tv.layoutParams = params
@@ -71,27 +76,38 @@ class ScrollViewBar : FrameLayout {
         indexListener?.onIndexChange(index)
     }
 
+
     private var out: Int = 0
     private var currentView: TextView? = null
     private fun moveLine(index: Int, flag: Int) {
-        val tv = viewList[index]
-        if (tv==currentView){
-            return
+
+        var pointer = index
+        var tv = viewList[index]
+        if (tv == currentView) {
+            if (index<viewList.size-1){
+                pointer += 1
+                tv = viewList[pointer]
+            }else{
+                indexListener?.onIndexChange(pointer,true)
+                return
+            }
         }
-        val width = sizeList[index] + out
-        val params: LinearLayout.LayoutParams = LinearLayout.LayoutParams(width,
-                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2f, resources.displayMetrics).toInt())
+        val width = sizeList[pointer] + out
+        val params: LinearLayout.LayoutParams = LinearLayout.LayoutParams(
+            width,
+            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2f, resources.displayMetrics).toInt()
+        )
         viewLine?.layoutParams = params
         val x = width / 2
-
-        val dis = viewXCentre[index] - x
-        tv.setTextColor( ContextCompat.getColor(mContext!!,R.color.red))
-        currentView?.setTextColor(ContextCompat.getColor(mContext!!,R.color.black))
+        val dis = viewXCentre[pointer] - x
+        tv.setTextColor(ContextCompat.getColor(mContext!!, R.color.red))
+        currentView?.setTextColor(ContextCompat.getColor(mContext!!, R.color.black))
         currentView = tv
         when (flag) {
             0 -> Instrument.getInstance().slidingToX(viewLine, dis.toFloat())
-            1 -> Instrument.getInstance().smoothToX(viewLine, dis.toFloat(), 300)
+            1 -> Instrument.getInstance().smoothToX(viewLine, dis.toFloat(), 100)
         }
+        indexListener?.onIndexChange(pointer)
     }
 
     private fun getXCentre(index: Int): Int {
@@ -113,22 +129,19 @@ class ScrollViewBar : FrameLayout {
 
     private val listener: OnClickListener = OnClickListener {
         val index: String = it.tag.toString()
-        //   Log.i(TAG, "ScrollViewBar:$index  移动 ")
-        moveLine(index.toInt(), 1)
-
-        indexListener?.onIndexChange(index.toInt())
+          moveLine(index.toInt(), 1)
     }
 
-    fun batchAddTab(list: List<String?>,count:Int) {
-        if (list.isEmpty()){
+    fun batchAddTab(list: List<String?>, count: Int) {
+        if (list.isEmpty()) {
             return
         }
         val length = viewList.size - 1
         viewList[length].text = list[length]
-        for (i in length+1 until count) {
-            if (i<list.size){
+        for (i in length + 1 until count) {
+            if (i < list.size) {
                 newTextView(list[i], 0)
-            }else{
+            } else {
                 newTextView(default, 0)
             }
         }
@@ -149,7 +162,7 @@ class ScrollViewBar : FrameLayout {
     }
 
     fun changeBarTileChange(index: Int, s: String?, flag: Int) {
-        if (index>=viewList.size){
+        if (index >= viewList.size) {
             return
         }
         viewList[index].text = s
@@ -244,6 +257,6 @@ class ScrollViewBar : FrameLayout {
     }
 
     interface OnIndexChangeListener {
-        fun onIndexChange(position: Int)
+        fun onIndexChange(position: Int,finish:Boolean=false)
     }
 }

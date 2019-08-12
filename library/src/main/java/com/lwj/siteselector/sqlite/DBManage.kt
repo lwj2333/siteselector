@@ -20,6 +20,7 @@ class DBManage private constructor(private var tableName: String?) {
         /*单例*/
         @Volatile
         private var INSTANCE: DBManage? = null
+
         /*获取单例*/
         fun getInstance(
             context: Context,
@@ -42,14 +43,17 @@ class DBManage private constructor(private var tableName: String?) {
                         } else {
                             dbPath
                         }
-                        val tabName = if (TextUtils.isEmpty(tableName)){
+                        val tabName = if (TextUtils.isEmpty(tableName)) {
                             "tb_location"
-                        }else{
+                        } else {
                             tableName
                         }
+                        if (!File(dBPath, dBName).exists()) {
+                            return null
+                        }
                         INSTANCE = try {
-                           // db = SQLiteDatabase.openOrCreateDatabase("$dBPath$dBName", null)
-                            db = SQLiteDatabase.openOrCreateDatabase(File(dBPath,dBName), null)
+                            // db = SQLiteDatabase.openOrCreateDatabase("$dBPath$dBName", null)
+                            db = SQLiteDatabase.openOrCreateDatabase(File(dBPath, dBName), null)
                             DBManage(tabName)
                         } catch (e: Exception) {
                             null
@@ -70,7 +74,8 @@ class DBManage private constructor(private var tableName: String?) {
         db?.close()
         INSTANCE = null
     }
-private val TAG ="DBManage"
+
+    private val TAG = "DBManage"
     fun queryLocation(locationID: Int): ArrayList<CityModel>? {
         if (query != null) {
             return query!!.queryLocation(locationID)
@@ -120,7 +125,7 @@ private val TAG ="DBManage"
         if (query != null) {
             return query!!.queryLocation(strList)
         }
-         Log.i(TAG,"DBManage: $tableName  ")
+        Log.i(TAG, "DBManage: $tableName  ")
         val list: ArrayList<ArrayList<CityModel>> = ArrayList()
         val map: ArrayMap<Int, Int> = ArrayMap()
         val locationMap: ArrayMap<Int, String> = ArrayMap()

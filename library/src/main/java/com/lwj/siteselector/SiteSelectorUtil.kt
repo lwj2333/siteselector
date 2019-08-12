@@ -27,6 +27,9 @@ class SiteSelectorUtil {
             sv?.dismiss()
         }
 
+        /**
+         * 批量添加数据，包括标题和各级数据
+         */
         fun batchAddTab(list: List<String?>, count: Int) {
             sv?.getBar()?.batchAddTab(list, count)
         }
@@ -40,10 +43,16 @@ class SiteSelectorUtil {
 
         }
 
+        /**
+         * 改变标题并显示下一级信息
+         */
         fun changeBarTileChange(index: Int, s: String?, flag: Int) {
             sv?.getBar()?.changeBarTileChange(index, s, flag)
         }
 
+        /**
+         * 移动标题指示器
+         */
         fun moveBarTile(index: Int) {
             sv?.getBar()?.moveBarTile(index)
         }
@@ -52,6 +61,9 @@ class SiteSelectorUtil {
             sv?.getBar()?.setListener(listener)
         }
 
+        /**
+         * 跳跃到指定地方
+         */
         fun skipToIndex(index: Int) {
             sv?.skipToIndex(index)
         }

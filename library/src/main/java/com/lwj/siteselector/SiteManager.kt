@@ -1,7 +1,6 @@
 package com.lwj.siteselector
 
 
-import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Handler
@@ -18,8 +17,8 @@ import com.lwj.siteselector.sqlite.CopyDB
 import com.lwj.siteselector.sqlite.DBManage
 import com.lwj.siteselector.sqlite.QueryOperation
 
-class SiteManager private constructor(builder: Builder) {
-    private var mContext: Context? = null
+class SiteManager private constructor(builder: Builder, var mContext: Context?) {
+
     private var mDialogSetting: DialogSetting? = null
     private var mQuery: QueryOperation? = null
     private var locationListener: OnLocationListener? = null
@@ -29,7 +28,6 @@ class SiteManager private constructor(builder: Builder) {
     private var dbResource: Int = -1
 
     init {
-        mContext = builder.mContext
         mDialogSetting = builder.mDialogSetting
         mQuery = builder.mQuery
         locationListener = builder.locationListener
@@ -37,8 +35,6 @@ class SiteManager private constructor(builder: Builder) {
         dbName = builder.dbName
         tableName = builder.tableName
         dbResource = builder.dbResource
-        initSharedPreferences()
-        initSite()
     }
 
     private var share: SharedPreferences? = null
@@ -51,14 +47,15 @@ class SiteManager private constructor(builder: Builder) {
 
     private fun putInt(key: String, value: Int) {
         editor?.putInt(key, value)
-        editor?.commit()
+        editor?.apply()
     }
 
     var mHandler: Handler = Handler()
 
 
     private var adapter: RecyclerAdapter_list<CityModel>? = null
-    private fun initSite() {
+    fun initSite() {
+        initSharedPreferences()
         adapter = object : RecyclerAdapter_list<CityModel>(mContext, list, R.layout.item_location) {
             override fun bindView(viewHolder: ViewHolder?, bean: CityModel?, position: Int) {
                 viewHolder?.setText(R.id.tv_location, bean?.cName)
@@ -191,7 +188,7 @@ class SiteManager private constructor(builder: Builder) {
     var isSelectFinish = true
     private val TAG = "SiteManager"
     fun selectLocation(siteList: List<String>?, count: Int = 1) {
-        Log.i(TAG, "SiteUtils: $siteList ")
+
         getLocation(siteList)
         if (listLocation.size > 0) {
             listIndex = listLocation.size - 1
@@ -226,7 +223,12 @@ class SiteManager private constructor(builder: Builder) {
 //                })
 
         SiteSelectorUtil.setListener(object : ScrollViewBar.OnIndexChangeListener {
-            override fun onIndexChange(position: Int) {
+            override fun onIndexChange(position: Int, finish: Boolean) {
+                if (finish) {
+                    Log.i(TAG, "SiteManager: $  结束 ")
+                    SiteSelectorUtil.cancelDialog()
+                    return
+                }
                 if (locationMap.size <= 0) {
                     return
                 }
@@ -262,10 +264,10 @@ class SiteManager private constructor(builder: Builder) {
     private var listener: View.OnClickListener = View.OnClickListener {
         val position = it.tag as Int
         setClickEvent(position)
-
     }
 
     private fun setClickEvent(position: Int) {
+        Log.i(TAG, "SiteManager: $position  ")
         val index = listMap[listIndex]
         if (index != null) {
             list[index].isSelect = false
@@ -277,6 +279,7 @@ class SiteManager private constructor(builder: Builder) {
         val id = list[position].id
         if (index != position) {
             if (initLocation(id, 1) == null) {
+                //最后一级
                 isSelectFinish = true
                 for (k in listMap.size - 1 downTo listIndex + 1) {
                     listMap.removeAt(k)
@@ -287,6 +290,8 @@ class SiteManager private constructor(builder: Builder) {
                 adapter?.notifyDataSetChanged()
                 SiteSelectorUtil.cancelDialog()
             } else {
+                //还有下一级
+
                 isSelectFinish = false
                 for (k in listMap.size - 1 downTo listIndex + 1) {
                     listMap.removeAt(k)
@@ -296,6 +301,7 @@ class SiteManager private constructor(builder: Builder) {
                 SiteSelectorUtil.changeBarTileChange(listIndex, list[position].cName, 1)
             }
         } else {
+            //重复点击已选中的
             SiteSelectorUtil.moveBarTile(listIndex)
         }
         //  setLocation(id)
@@ -341,7 +347,6 @@ class SiteManager private constructor(builder: Builder) {
             mContext!!, tableName,
             dbName, dbPath
         )?.queryLocation(locationID)
-  Log.i(TAG,"SiteManager: $location  ")
         if (location != null) {
             when (type) {
                 0 -> {
@@ -371,7 +376,7 @@ class SiteManager private constructor(builder: Builder) {
 
 
     object Builder {
-        var mContext: Context? = null
+
         var mDialogSetting: DialogSetting? = null
         var mQuery: QueryOperation? = null
         var locationListener: OnLocationListener? = null
@@ -379,10 +384,7 @@ class SiteManager private constructor(builder: Builder) {
         var dbName: String? = null
         var tableName: String? = null
         var dbResource: Int = -1
-        fun setContext(context: Context): Builder {
-            mContext = context
-            return this
-        }
+
 
         fun setDBName(dbName: String?): Builder {
             this.dbName = dbName
@@ -419,8 +421,8 @@ class SiteManager private constructor(builder: Builder) {
             return this
         }
 
-        fun build(): SiteManager {
-            return SiteManager(this)
+        fun build(mContext: Context?): SiteManager {
+            return SiteManager(this, mContext)
         }
     }
 
