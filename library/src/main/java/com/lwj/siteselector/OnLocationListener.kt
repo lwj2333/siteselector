@@ -9,6 +9,6 @@ import android.support.v4.util.ArrayMap
  * describe 添加描述
  */
 interface OnLocationListener {
-    fun onLocation(location: ArrayMap<Int, String>, vararg locationID: Int)
+    fun onLocation(location: ArrayMap<Int, String>,  locationID: Int)
     fun onFinish()
 }

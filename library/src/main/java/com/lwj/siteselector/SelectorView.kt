@@ -5,11 +5,12 @@ import android.content.Context
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
-import android.util.Log
+
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.view_selector.*
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * author by  LWJ
@@ -21,12 +22,14 @@ class SelectorView : Dialog {
     private var title: String? = "所在地区"
     private var manager: LinearLayoutManager? = null
 
-    constructor(context: Context?) : super(context, R.style.DialogTheme)
-    constructor(context: Context?, themeResId: Int) : super(context, themeResId)
+    constructor(context: Context) : super(context, R.style.DialogTheme)
+    constructor(context: Context, themeResId: Int) : super(context, themeResId)
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.view_selector)
+        index.incrementAndGet()
         setCanceledOnTouchOutside(true)
         window.setGravity(Gravity.BOTTOM)
         window.setLayout(
@@ -51,6 +54,7 @@ class SelectorView : Dialog {
         rv_location.setHasFixedSize(true)
         rv_location.adapter = adapter
     }
+
     fun setAdapter(adapter: RecyclerView.Adapter<*>): SelectorView {
         this.adapter = adapter
         return this
@@ -82,8 +86,13 @@ class SelectorView : Dialog {
         this.listener = listener
     }
 
+    private var index: AtomicInteger = AtomicInteger(0)
+
     override fun dismiss() {
-        listener?.onFinish()
+        if (index.get() > 0) {
+            index.decrementAndGet()
+            listener?.onFinish()
+        }
         super.dismiss()
     }
 

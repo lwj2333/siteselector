@@ -4,6 +4,8 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.os.Environment
 import android.support.v4.util.ArrayMap
+import com.lwj.siteselector.sqlite.CityDBModel
+import com.lwj.siteselector.sqlite.CityModel
 import com.lwj.siteselector.sqlite.QueryOperation
 
 

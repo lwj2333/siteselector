@@ -25,10 +25,10 @@ class ScrollViewBar : FrameLayout {
     private var margin: Int = 10
     private val default: String = "请选择"
 
-    constructor(context: Context?) : super(context)
-    constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs) {
+    constructor(context: Context) : super(context)
+    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
         mContext = context
-        val typedArray = context!!.obtainStyledAttributes(attrs, R.styleable.ScrollViewBar)
+        val typedArray = context.obtainStyledAttributes(attrs, R.styleable.ScrollViewBar)
         textSize = typedArray.getDimensionPixelSize(
             R.styleable.ScrollViewBar_textSize, TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_SP, 14f, resources.displayMetrics
@@ -40,8 +40,9 @@ class ScrollViewBar : FrameLayout {
     }
 
     private fun initView() {
+
         out = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10f, resources.displayMetrics).toInt()
-        val v: View = LayoutInflater.from(mContext).inflate(R.layout.view_scroll, null)
+        val v: View = LayoutInflater.from(mContext).inflate(R.layout.view_scroll, this, false)
         val include: View = v.findViewById(R.id.include)
         viewLine = include.findViewById(R.id.v_line)
         viewGroup = include.findViewById(R.id.ll_bar)
@@ -49,6 +50,17 @@ class ScrollViewBar : FrameLayout {
         newTextView(default, 0)
 
     }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        val widthSize = MeasureSpec.getSize(widthMeasureSpec)
+        measureChildren(widthMeasureSpec, heightMeasureSpec)
+        val view = getChildAt(0)
+        val heightChild = view.measuredHeight
+        Log.i(TAG, "ScrollViewBar: $heightChild  ")
+        setMeasuredDimension(widthSize, heightChild)
+    }
+
 
     private val TAG = "ScrollViewBar"
 
@@ -77,18 +89,18 @@ class ScrollViewBar : FrameLayout {
     }
 
 
-    private var out: Int = 0
+    private var out: Int = 0  //底部红线超出文字的长度
     private var currentView: TextView? = null
     private fun moveLine(index: Int, flag: Int) {
 
         var pointer = index
         var tv = viewList[index]
         if (tv == currentView) {
-            if (index<viewList.size-1){
+            if (index < viewList.size - 1) {
                 pointer += 1
                 tv = viewList[pointer]
-            }else{
-                indexListener?.onIndexChange(pointer,true)
+            } else {
+                indexListener?.onIndexChange(pointer, true)
                 return
             }
         }
@@ -129,7 +141,7 @@ class ScrollViewBar : FrameLayout {
 
     private val listener: OnClickListener = OnClickListener {
         val index: String = it.tag.toString()
-          moveLine(index.toInt(), 1)
+        moveLine(index.toInt(), 1)
     }
 
     fun batchAddTab(list: List<String?>, count: Int) {
@@ -257,6 +269,6 @@ class ScrollViewBar : FrameLayout {
     }
 
     interface OnIndexChangeListener {
-        fun onIndexChange(position: Int,finish:Boolean=false)
+        fun onIndexChange(position: Int, finish: Boolean = false)
     }
 }

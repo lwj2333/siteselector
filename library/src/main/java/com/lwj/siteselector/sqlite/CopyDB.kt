@@ -3,7 +3,7 @@ package com.lwj.siteselector.sqlite
 import android.content.Context
 import android.os.Environment
 import android.text.TextUtils
-import android.util.Log
+
 import com.lwj.siteselector.R
 import java.io.*
 
@@ -12,7 +12,7 @@ class CopyDB(private var mContext: Context) {
 
     private val packageName = mContext.packageName
 
-    fun checkDB(dbResource: Int, dbName: String?, dbPath: String?, cover: Boolean = false): Int {
+    fun checkDB(dbResource: Int, dbName: String?, dbPath: String?): Int {
 
         val resource = if (dbResource == -1) {
             R.raw.gdjj_location
@@ -28,32 +28,31 @@ class CopyDB(private var mContext: Context) {
         if (!File(dBPath).exists()) {
             File(dBPath).mkdirs()
         }
-        val dBName: String ? = if (TextUtils.isEmpty(dbName)) {
+        val dBName: String? = if (TextUtils.isEmpty(dbName)) {
             "location.db"
         } else {
             dbName
         }
-        return copyDatabase(resource,File(dBPath,dBName) , cover)
+        return copyDatabase(resource, File(dBPath, dBName))
     }
-private val TAG ="CopyDB"
 
-    private fun copyDatabase(dbResource: Int, dbFile: File, cover: Boolean): Int {
+
+
+    private fun copyDatabase(dbResource: Int, dbFile: File): Int {
 
         var fos: FileOutputStream? = null
         var ins: InputStream? = null
         var result = 0
         try {
-            if (cover || !dbFile.exists()) {
-                ins = mContext.resources.openRawResource(dbResource)
-                fos = FileOutputStream(dbFile)
-                val buffer = ByteArray(bufferSize)
-                var length: Int = ins.read(buffer)
-                while (length > 0) {
-                    fos.write(buffer, 0, length)
-                    length = ins.read(buffer)
-                }
-                fos.flush()
+            ins = mContext.resources.openRawResource(dbResource)
+            fos = FileOutputStream(dbFile)
+            val buffer = ByteArray(bufferSize)
+            var length: Int = ins.read(buffer)
+            while (length > 0) {
+                fos.write(buffer, 0, length)
+                length = ins.read(buffer)
             }
+            fos.flush()
             result = 1
         } catch (e: FileNotFoundException) {
             e.printStackTrace()

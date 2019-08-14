@@ -14,7 +14,7 @@ import java.io.File
  * @date on 2018/4/25
  * @describe 添加描述
  */
-class DBManage private constructor(private var tableName: String?) {
+class DBManage private constructor(private var tableName: String?,private var query: QueryOperation? = null) {
     companion object {
         private var db: SQLiteDatabase? = null
         /*单例*/
@@ -26,7 +26,8 @@ class DBManage private constructor(private var tableName: String?) {
             context: Context,
             tableName: String? = null,
             dbName: String? = null,
-            dbPath: String? = null
+            dbPath: String? = null,
+            query: QueryOperation? = null
         ): DBManage? {
             if (INSTANCE == null) {
                 synchronized(DBManage::class.java) {
@@ -54,7 +55,7 @@ class DBManage private constructor(private var tableName: String?) {
                         INSTANCE = try {
                             // db = SQLiteDatabase.openOrCreateDatabase("$dBPath$dBName", null)
                             db = SQLiteDatabase.openOrCreateDatabase(File(dBPath, dBName), null)
-                            DBManage(tabName)
+                            DBManage(tabName,query)
                         } catch (e: Exception) {
                             null
                         }
@@ -65,10 +66,10 @@ class DBManage private constructor(private var tableName: String?) {
         }
     }
 
-    var query: QueryOperation? = null
-    fun addQuery(query: QueryOperation) {
-        this.query = query
-    }
+//    var query: QueryOperation? = null
+//    fun addQuery(query: QueryOperation) {
+//        this.query = query
+//    }
 
     fun close() {
         db?.close()
@@ -121,7 +122,7 @@ class DBManage private constructor(private var tableName: String?) {
         return id
     }
 
-    fun queryLocation(strList: List<String?>): CityDBModel {
+    fun queryLocation(strList: List<String?>): CityDBModel ?{
         if (query != null) {
             return query!!.queryLocation(strList)
         }
