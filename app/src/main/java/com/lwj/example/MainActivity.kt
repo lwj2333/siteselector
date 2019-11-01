@@ -12,15 +12,23 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
     var site :SiteManager ?=null
+    var last:Boolean =false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
          site = SiteManager.Builder.setResultListener(object :OnLocationListener{
-            override fun onLocation(location: ArrayMap<Int, String>,  locationID: Int) {
-                  Log.i(TAG,"MainActivity: $location  $locationID  ")
-            }
+             override fun onLocation(
+                 location: ArrayMap<Int, String>,
+                 locationID: Int,
+                 isLast: Boolean
+             ) {
+                 Log.i(TAG,"MainActivity: $location  $locationID  $isLast")
+                 last =isLast
+             }
+
+
             override fun onFinish() {
-            Log.i(TAG,"MainActivity: $  完成")
+            Log.i(TAG,"MainActivity: $last  完成")
             }
         }).setDialogSetting(object :DialogSetting{
             override fun showDialog(type: Int) {

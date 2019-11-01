@@ -2,7 +2,6 @@ package com.lwj.siteselector
 
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.os.Handler
 import android.support.v4.util.ArrayMap
 import android.text.TextUtils
@@ -111,7 +110,7 @@ class SiteManager private constructor(builder: Builder, var mContext: Context?) 
 //    }
 
     private fun setLocation(position: Int = -1) {
-        locationListener?.onLocation(locationMap, position)
+        locationListener?.onLocation(locationMap, position,isSelectFinish)
 //        var str = ""
 //        val list:ArrayList<String> = ArrayList()
 //        for (i in 0 until locationMap.size) {
@@ -163,7 +162,7 @@ class SiteManager private constructor(builder: Builder, var mContext: Context?) 
     }
 
 
-    var isSelectFinish = true
+   private var isSelectFinish = true
     private val TAG = "SiteManager"
     fun selectLocation(siteList: List<String>?, count: Int = 1) {
 
